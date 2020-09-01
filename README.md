@@ -5,7 +5,7 @@ Modified Very Simple CPU is a teaching architecture to explain CPU implementatio
 I don't remember the book, if you know the book or are the author (in the same book there is a description of the Relative Simple CPU) tell me the title
 and your name, and i will gladly add you in the credits. Thank you.
 
-##Architecture
+## Architecture
 The architecture is a 6 bit one with only 4 instruction. The main register is 8 bit wide.
 
 The visible register set is made by two registers:  
@@ -13,7 +13,7 @@ The visible register set is made by two registers:
  * AC (the accumulator), 8 bit  
  
 
-Full Register Set (Visible + Hidden)
+Full Register Set (Visible + Hidden)  
 
 PC - 8 bit  -- Visible, Program Counter  
 AC - 8 bit  -- ACcumulator register  
@@ -21,54 +21,51 @@ DR - 8 bit  -- Data Register, contains the read data
 AR - 8 bit  -- Address Register, output to the memory  
 IR - 2 bit  -- Instruction Register, contains the 2 bit opcode  
 
-##Encoding
+## Encoding  
 
 The encoding is composed of 2 bit opcode and 6 bit address.
 
-##Instructions
+## Instructions  
 
 **Legend** 
-    @ : address  
-    <- : assign  
-    , : parallel (e.g. IR <- X, AR <- Y means that both IR and AR get updated in the same clock cycle)  
-    ; : await next clock  
-    + : binary add  
-    & : binary and  
+    - @ : address  
+    - <- : assign  
+    - , : parallel (e.g. IR <- X, AR <- Y means that both IR and AR get updated in the same clock cycle)  
+    - ; : await next clock  
+    - + : binary add  
+    - & : binary and  
 
-###ADD @ : 00 address( 6 bit )
+### ADD @ : 00 address( 6 bit )  
 
-    IR <- MEM[PC], AR <- MEM[PC];  
-    DR <- MEM[AR];   
-    AC <- AC + DR;  
+    1. IR <- MEM[PC], AR <- MEM[PC];  
+    2. DR <- MEM[AR];   
+    3. AC <- AC + DR;  
 
+### AND @ : 01 address( 6 bit )  
 
-###AND @ : 01 address( 6 bit )
+    1. IR <- MEM[PC], AR <- MEM[PC];  
+    2. DR <- MEM[AR];   
+    3. AC <- AC & DR;  
 
-    IR <- MEM[PC], AR <- MEM[PC];  
-    DR <- MEM[AR];   
-    AC <- AC & DR;  
+### JMP @ : 10 address( 6 bit )  
 
+    1. IR <- MEM[PC], AR <- MEM[PC];  
+    2. PC <- AR;  
 
-###JMP @ : 10 address( 6 bit )
+### STA @ : 11 address( 6 bit )  
 
-    IR <- MEM[PC], AR <- MEM[PC];  
-    PC <- AR;  
+    1. IR <- MEM[PC], AR <- MEM[PC];  
+    2. MEM[AR] <- AC;  
 
+# Implementation
 
-###STA @ : 11 address( 6 bit )
+## Internal Bus  
 
-    IR <- MEM[PC], AR <- MEM[PC];  
-    MEM[AR] <- AC;  
-
-#Implementation
-
-##Internal Bus  
-
-BUS_0 := connect( AR(read), DR(read), IR(read), MEM_D_IN(write) );                The BUS_0 has only one writer (MEM_D_IN)  
-BUS_1 := connect( PC(read), PC(write), AR(write), MEM_ADR(read) );                The BUS_1 has two writer (AR & PC), and two reader (PC & MEM_ADR)  
+**BUS_0** := connect( AR(read), DR(read), IR(read), MEM_D_IN(write) );                The BUS_0 has only one writer (MEM_D_IN)  
+**BUS_1** := connect( PC(read), PC(write), AR(write), MEM_ADR(read) );                The BUS_1 has two writer (AR & PC), and two reader (PC & MEM_ADR)  
 
 
-##Signals
+## Signals
 
 AR_RB0          AR <- BUS_0  
 DR_RB0          DR <- BUS_0  
@@ -82,7 +79,7 @@ W_MEM           MEM[ MEM_ADR ] <- AC
 PC_INC          PC <- PC + 1  
 
 
-##Direct links
+## Direct links
 
 AC -> ALU_PORT_0
 DR -> ALU_PORT_1
@@ -90,24 +87,24 @@ AC -> MEM_D_OUT
 IR[0] -> ALU_SELECT
 
 
-##Microcontrol States
+## Microcontrol States
 
-INIT : PC_WB1;
-FETCH: AR_RB0, IR_RB0;
-ADD0 : ~PC_WB1, AR_WB1, PC_INC;
-ADD1 : DR_RB0;
-ADD2 : AC_LD;
-AND0 : ~PC_WB1, AR_WB1, PC_INC;
-AND1 : DR_RB0;
-AND2 : AC_LD;
-JMP0 : ~PC_WB1, AR_WB1, PC_INC;
-JMP1 : PC_RB1;
-STA0 : ~PC_WB1, AR_WB1, PC_INC;
-STA1 : W_MEM;
-END  : PC_WB1;
+INIT : PC_WB1;  
+FETCH: AR_RB0, IR_RB0; 
+ADD0 : ~PC_WB1, AR_WB1, PC_INC;  
+ADD1 : DR_RB0;  
+ADD2 : AC_LD;  
+AND0 : ~PC_WB1, AR_WB1, PC_INC;  
+AND1 : DR_RB0;  
+AND2 : AC_LD;  
+JMP0 : ~PC_WB1, AR_WB1, PC_INC;  
+JMP1 : PC_RB1;  
+STA0 : ~PC_WB1, AR_WB1, PC_INC;  
+STA1 : W_MEM;  
+END  : PC_WB1;  
 
 
-##States Reduction
+## States Reduction
 
 ADD0 = AND0 = JMP0 = STA0 -> PMEM  
 ADD1 = AND1 -> ALU1  
@@ -115,7 +112,7 @@ ADD2 = AND2 -> ALU2
 
 FETCH : AR_RB0, IR_RB0;  
 PMEM: ~PC_WB1, AR_WB1, PC_INC;  
-{
+{  
     ALU1: DR_RB0;  
     ALU2: AC_LD;  
     JMP1: PC_RB1;  
@@ -123,7 +120,7 @@ PMEM: ~PC_WB1, AR_WB1, PC_INC;
 }  
 END: PC_WB1, ~AR_WB1;  
 
-##States Encoding  
+## States Encoding  
 
 INIT = 000  
 FETCH = 001  
@@ -134,13 +131,13 @@ ALU1 = 101
 ALU2 = 110  
 END = 111  
 
-##Opcodes to Microcontrol States  
+## Opcodes to Microcontrol States  
 00 -> 0, 1, 2, 5, 6, 7, 1  
 01 -> 0, 1, 2, 5, 6, 7, 1  
 10 -> 0, 1, 2, 3, 7, 1  
 11 -> 0, 1, 2, 4, 7, 1  
 
-##Microcontrol Signals  
+## Microcontrol Signals  
 
 INC_MPC = 1  
 LD_MPC = (PMEM * IJMP') + STA1 + JMP1 + END = ((PMEM * IJMP')' * (STA1') * (END'))'  
