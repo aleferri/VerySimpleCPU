@@ -28,12 +28,13 @@ The encoding is composed of 2 bit opcode and 6 bit address.
 ## Instructions  
 
 **Legend**  
-    - @ : address  
-    - <- : assign  
-    - , : parallel (e.g. IR <- X, AR <- Y means that both IR and AR get updated in the same clock cycle)  
-    - ; : await next clock  
-    - + : binary add  
-    - & : binary and  
+
+    * **@** : address  
+    * **<-** : assign  
+    * **,** : parallel (e.g. IR <- X, AR <- Y means that both IR and AR get updated in the same clock cycle)  
+    * **;** : await next clock  
+    * **+** : binary add  
+    * **&** : binary and  
 
 ### ADD @ : opcode(00) address( 6 bit )  
 
