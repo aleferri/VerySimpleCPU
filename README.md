@@ -27,7 +27,7 @@ The encoding is composed of 2 bit opcode and 6 bit address.
 
 ## Instructions  
 
-**Legend** 
+**Legend**  
     - @ : address  
     - <- : assign  
     - , : parallel (e.g. IR <- X, AR <- Y means that both IR and AR get updated in the same clock cycle)  
@@ -35,24 +35,24 @@ The encoding is composed of 2 bit opcode and 6 bit address.
     - + : binary add  
     - & : binary and  
 
-### ADD @ : 00 address( 6 bit )  
+### ADD @ : opcode(00) address( 6 bit )  
 
     1. IR <- MEM[PC], AR <- MEM[PC];  
     2. DR <- MEM[AR];   
     3. AC <- AC + DR;  
 
-### AND @ : 01 address( 6 bit )  
+### AND @ : opcode(01) address( 6 bit )  
 
     1. IR <- MEM[PC], AR <- MEM[PC];  
     2. DR <- MEM[AR];   
     3. AC <- AC & DR;  
 
-### JMP @ : 10 address( 6 bit )  
+### JMP @ : opcode(10) address( 6 bit )  
 
     1. IR <- MEM[PC], AR <- MEM[PC];  
     2. PC <- AR;  
 
-### STA @ : 11 address( 6 bit )  
+### STA @ : opcode(11) address( 6 bit )  
 
     1. IR <- MEM[PC], AR <- MEM[PC];  
     2. MEM[AR] <- AC;  
@@ -67,41 +67,41 @@ The encoding is composed of 2 bit opcode and 6 bit address.
 
 ## Signals
 
-AR_RB0          AR <- BUS_0  
-DR_RB0          DR <- BUS_0  
-IR_RB0          IR <- BUS_0  
-PC_RB1          PC <- BUS_1  
-PC_WB1          PC -> BUS_1  
-AR_WB1          AR -> BUS_1  
-ALU_MUX         ALU <- select( AC + DR, AC & DR )  
-AC_LD           AC <- ALU  
-W_MEM           MEM[ MEM_ADR ] <- AC  
-PC_INC          PC <- PC + 1  
+    AR_RB0          AR <- BUS_0  
+    DR_RB0          DR <- BUS_0  
+    IR_RB0          IR <- BUS_0  
+    PC_RB1          PC <- BUS_1  
+    PC_WB1          PC -> BUS_1  
+    AR_WB1          AR -> BUS_1  
+    ALU_MUX         ALU <- select( AC + DR, AC & DR )  
+    AC_LD           AC <- ALU  
+    W_MEM           MEM[ MEM_ADR ] <- AC  
+    PC_INC          PC <- PC + 1  
 
 
 ## Direct links
 
-AC -> ALU_PORT_0
-DR -> ALU_PORT_1
-AC -> MEM_D_OUT
-IR[0] -> ALU_SELECT
+    AC -> ALU_PORT_0
+    DR -> ALU_PORT_1
+    AC -> MEM_D_OUT
+    IR[0] -> ALU_SELECT
 
 
 ## Microcontrol States
 
-INIT : PC_WB1;  
-FETCH: AR_RB0, IR_RB0; 
-ADD0 : ~PC_WB1, AR_WB1, PC_INC;  
-ADD1 : DR_RB0;  
-ADD2 : AC_LD;  
-AND0 : ~PC_WB1, AR_WB1, PC_INC;  
-AND1 : DR_RB0;  
-AND2 : AC_LD;  
-JMP0 : ~PC_WB1, AR_WB1, PC_INC;  
-JMP1 : PC_RB1;  
-STA0 : ~PC_WB1, AR_WB1, PC_INC;  
-STA1 : W_MEM;  
-END  : PC_WB1;  
+    INIT : PC_WB1;  
+    FETCH: AR_RB0, IR_RB0; 
+    ADD0 : ~PC_WB1, AR_WB1, PC_INC;  
+    ADD1 : DR_RB0;  
+    ADD2 : AC_LD;  
+    AND0 : ~PC_WB1, AR_WB1, PC_INC;  
+    AND1 : DR_RB0;  
+    AND2 : AC_LD;  
+    JMP0 : ~PC_WB1, AR_WB1, PC_INC;  
+    JMP1 : PC_RB1;  
+    STA0 : ~PC_WB1, AR_WB1, PC_INC;  
+    STA1 : W_MEM;  
+    END  : PC_WB1;  
 
 
 ## States Reduction
@@ -132,10 +132,11 @@ ALU2 = 110
 END = 111  
 
 ## Opcodes to Microcontrol States  
-00 -> 0, 1, 2, 5, 6, 7, 1  
-01 -> 0, 1, 2, 5, 6, 7, 1  
-10 -> 0, 1, 2, 3, 7, 1  
-11 -> 0, 1, 2, 4, 7, 1  
+
+    00 -> 0, 1, 2, 5, 6, 7, 1  
+    01 -> 0, 1, 2, 5, 6, 7, 1  
+    10 -> 0, 1, 2, 3, 7, 1  
+    11 -> 0, 1, 2, 4, 7, 1  
 
 ## Microcontrol Signals  
 
@@ -158,25 +159,26 @@ I0 : (PMEM * ISTA)' = O2' * O1 * O0' * (IR0 * IR1)'
 I1 : PMEM' * END' = (O2' * O1 * O0')'  
 I2 : END' = (O2 * O1 * O0)'  
 
-FIELD : 9_SGN_CNTRL  
-8_SGN_CNTRL / AR_RB0, DR_RB0, IR_RB0, PC_RB1, PC_WB1, AR_WB1, AC_LD, W_MEM, PC_INC  
-INIT :          0,      0,      0,      0,      1,      0,      0,      0,      0  
-FETCH:          1,      0,      1,      0,      1,      0,      0,      0,      0  
-PMEM :          0,      0,      0,      0,      0,      1,      0,      0,      1  
-JMP1 :          0,      0,      0,      1,      0,      0,      0,      0,      0  
-STA1 :          0,      0,      0,      0,      0,      0,      0,      1,      0  
-ALU1 :          0,      1,      0,      0,      0,      0,      0,      0,      0  
-ALU2 :          0,      0,      0,      0,      0,      0,      1,      0,      0  
-END  :          0,      0,      0,      0,      1,      0,      0,      0,      0  
+    FIELD : 9_SGN_CNTRL  
+    8_SGN_CNTRL / AR_RB0, DR_RB0, IR_RB0, PC_RB1, PC_WB1, AR_WB1, AC_LD, W_MEM, PC_INC  
+    INIT :          0,      0,      0,      0,      1,      0,      0,      0,      0  
+    FETCH:          1,      0,      1,      0,      1,      0,      0,      0,      0  
+    PMEM :          0,      0,      0,      0,      0,      1,      0,      0,      1  
+    JMP1 :          0,      0,      0,      1,      0,      0,      0,      0,      0  
+    STA1 :          0,      0,      0,      0,      0,      0,      0,      1,      0  
+    ALU1 :          0,      1,      0,      0,      0,      0,      0,      0,      0  
+    ALU2 :          0,      0,      0,      0,      0,      0,      1,      0,      0  
+    END  :          0,      0,      0,      0,      1,      0,      0,      0,      0  
 
 
 Initial Program in RAM  
-@14 = 31 hex(1F)  
-@15 = 71 hex(47)  
-@16 = 0  hex(0)  
 
-@0 = ADD @14 hex(38)  
-@1 = AND @15 hex(3D)  
-@2 = STA @17 hex(47)  
-@3 = AND @16 hex(41)  
-@4 = JMP @0  hex(02)  
+    @14 = 31 hex(1F)  
+    @15 = 71 hex(47)  
+    @16 = 0  hex(0)  
+
+    @0 = ADD @14 hex(38)  
+    @1 = AND @15 hex(3D)  
+    @2 = STA @17 hex(47)  
+    @3 = AND @16 hex(41)  
+    @4 = JMP @0  hex(02)  
